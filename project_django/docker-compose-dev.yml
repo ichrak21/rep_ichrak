@@ -1,0 +1,65 @@
+version: '3'
+
+networks:
+  referential:
+
+services:
+  traefik:
+    image: "traefik:v1.7.18-alpine"
+    container_name: "traefik"
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - "referential"
+    volumes:
+      - "./key:/etc/traefik/certs"
+      - "../traefik/traefik.toml:/etc/traefik/traefik.toml"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    restart: always
+  db:
+    image: postgres:9.5
+    container_name: db
+    env_file:
+      - ../db-dev.env
+    volumes:
+      - ./docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/
+    networks:
+      - referential
+    restart: always
+    ports:
+      - "5432:5432"
+  app:
+    image: ryh8rpku.gra5.container-registry.ovh.net/referentiels/v2:dev  
+    container_name: app
+    volumes:
+      - ./src:/app/src
+      - ./data:/home/ichrak/pro/cci/v2
+    entrypoint: "bash init_server.sh" 
+    env_file:
+      - ../credential-dev.env
+    depends_on:
+      - db 
+    links:
+      - db
+    networks:
+      - referential
+    ports:
+      - "8000:8000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host:referential-api-dev.chamberlab.net"
+      - "traefik.port=8000"
+      - "traefik.docker.network=v2_referential" 
+    restart: always
+  front:
+    image: ryh8rpku.gra5.container-registry.ovh.net/referentiels/frontend:dev
+    container_name: front
+    networks:
+      - referential
+    labels:
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host:referential-dev.chamberlab.net"
+      - "traefik.docker.network=v2_referential"
+      - "traefik.port=80"
+    restart: always 

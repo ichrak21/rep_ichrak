@@ -1,0 +1,55 @@
+version: '3'
+
+services:
+    db:
+      image: postgres:9.5
+      container_name: referentiels_${REF_ENV}_db
+      volumes:
+        - ./db_data:/var/lib/postgresql/data
+        - ./docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/
+      environment:
+        TZ: "Europe/Paris"
+        POSTGRES_DB: referentiel
+        POSTGRES_USER: referentiel
+        POSTGRES_PASSWORD: ${REF_DB_PASSWORD}
+      ports:
+        - "5432:5432"
+      networks:
+        - referentiel
+    adminer:
+      image: adminer
+      ports:
+        - "8080:8080"
+      networks:
+        - referentiel
+    app:
+      build:
+        dockerfile: Dockerfile
+        context: .
+      container_name: referentiels_${REF_ENV}_app
+      volumes:
+        - ./src:/app/src
+        - ./data:/home/ichrak/pro/cci/v2
+      command: "python /app/src/manage.py runserver 0.0.0.0:8000"
+      environment:
+        VIRTUAL_HOST: api.chamberlab.net
+        VIRTUAL_PORT: 8000
+        APP_ENVIRONMENT: development
+        DJANGO_REDIRECT_SSO: http://ichrak.com:3000
+        DJANGO_REDIRECT_LOGIN: http://ichrak.com:8000/login/callback_authlib/
+        DJANGO_SESSION_COOKIE_DOMAIN: ichrak.com
+        DJANGO_CSRF_COOKIE_DOMAIN: ichrak.com
+
+      depends_on:
+        - db 
+      links:
+        - db:db
+      ports:
+        - "8000:8000"
+        - "587:587"
+      expose:
+        - "587"
+      networks:
+        - referentiel
+networks:
+  referentiel:

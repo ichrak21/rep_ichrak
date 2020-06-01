@@ -1,0 +1,43 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+#ipython = "*"
+#vim-power = "*"
+#powerline-shell = "*"
+
+[packages]
+django-six = "*"
+djangorestframework = "*"
+coreapi = "*"
+pandas = "*"
+psycopg2-binary = "*"
+xlrd = "*"
+django-reversion = "*"
+# django-import-export = "*"
+Django = "*"
+Markdown = "*"
+Pillow = "*"
+Pygments = "*"
+SQLAlchemy = "*"
+gunicorn = "*"
+whitenoise = "*"
+authlib = "*"
+requests-oauthlib = "*"
+pylint = "*"
+python-memcached = "*"
+jinja2 = "*"
+keycloak = "*"
+python-keycloak = "*"
+python-keycloak-client = "*" 
+django-filter = "*"
+django-widget-tweaks = "*"
+django-cors-headers = "*"
+
+[requires]
+python_version = "3.8"
+
+[scripts]
+run-local = "python manage.py runserver --database=local"

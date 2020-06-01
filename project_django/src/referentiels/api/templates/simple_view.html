@@ -1,0 +1,130 @@
+{% extends "header.html" %}
+
+    {% block content %}
+    <head>
+        <link href="https://fonts.googleapis.com/css?family=Fira+Sans:300,400,700,800&display=swap"rel="stylesheet">
+    </head>
+    <div class="container" id="app">
+      <div class="row">
+        <div class="col-md-2"></div>
+          <div class="col-md-8 col-xs-12 col-sm-12" v-if="!show">
+            <div class="list-group list-group-flush">
+              {% for dict_item in perso_list %} 
+              <a id="perso" class="list-group-item list-group-item-action flex-column align-items-start" onclick="myFunction('{{ dict_item.nom }}','{{ dict_item.prenom }}', '{{ dict_item.phone }}', '{{ dict_item.email }}')" v-on:click="show=true">
+                <div style="visibility: hidden;">
+                    <p>{{dict_item.phone }}</p>
+                </div>
+                <div class="d-flex w-100 justify-content-between">
+                  <h5 style="font-weight: bold;">{{ dict_item.nom }} {{ dict_item.prenom }}</h5>
+                </div>
+                <p class="mb-1">CCI France</p>
+              </a>
+              {% endfor %}
+            </div>
+          </div>
+          <transition name="fade">
+            <div class="form-det">
+              <h1 id="sign-h1">Detail Perso</h1>
+              <div class="block">
+                <h4 id="nom"></h4><h4 id="prenom"></h4>
+                <div class="social-container">
+                  <a href="#" class="social"><i class="fab fa-facebook-f"></i></a>
+                  <a href="#" class="social"><i class="far fa-envelope"></i></a>
+                  <a href="#" class="social"><i class="fas fa-phone"></i></a>
+                  <i class=""></i>
+                </div>
+                <p id="phone"></p>
+                <p id="email"></p>
+              </div>
+            </div>
+          </transition>
+      </div>
+    </div>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="https://kit.fontawesome.com/a076d05399.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+ function myFunction(nom, prenom, phone, email){
+   var people = []
+    people={
+      "nom" : nom,
+      "prenom": prenom,
+      "phone": phone,
+      "email": email
+    }
+    document.getElementById("nom").innerHTML = people.nom;
+    document.getElementById("prenom").innerHTML = people.prenom;
+    document.getElementById("phone").innerHTML = people.phone;
+    document.getElementById("email").innerHTML = people.email;
+  return people
+}
+  var app = new Vue({
+      el: '#app',
+      data: {
+        show: false
+      }
+    });
+</script>
+  
+<style>
+@media screen and (max-width: 480px) {   
+  .button-b {
+    display: none;
+  }
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+}
+
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
+.form-det{
+  width: 400px;
+  height: 600px;
+  position: relative;
+  margin: 3% auto;
+  padding: 5%;
+  box-shadow: 1px 2px 5px 0px #9D9D9D;
+  overflow: hidden;
+}
+.social {
+	color: #333;
+	font-size: 14px;
+	text-decoration: none;
+	margin: 15px 0;
+}
+.social-container {
+	margin: 20px 0;
+}
+
+.social-container a {
+	border: 1px solid #DDDDDD;
+	border-radius: 50%;
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	margin: 0 5px;
+	height: 40px;
+	width: 40px;
+}
+body{ 
+  font-family: 'Fira Sans', arial, sans-serif ; 
+}
+.btn-primary {
+  background-color: #373CF5 !important;
+}
+#sign-h1{
+  text-align: center;
+  margin-top: 20%;
+}
+.block{
+  margin-top: 20%;
+  text-align: center;
+}
+</style>
+
+{% endblock %}

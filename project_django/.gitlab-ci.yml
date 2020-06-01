@@ -1,0 +1,87 @@
+stages:
+- build
+- publish
+- deploy
+
+variables:
+  REPOSITORY_NAME: referentiels
+  IMAGE_NAME: v2
+  DEV_TAG: development
+  
+build-staging:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - echo "{\"auths\":{\"$REGISTRY_HOST\":{\"username\":\"$REGISTRY_USER\",\"password\":\"$REGISTRY_PASS\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $REGISTRY_HOST/$REPOSITORY_NAME/$IMAGE_NAME:$DEV_TAG --cache=true --cache-dir $REGISTRY_HOST/$IMAGE_NAME/$DEV_TAG/cache
+  only:
+    - developmenta
+    
+build:
+  stage: build
+  image: docker:git
+  script:
+    - echo "REPOSITORY $REGISTRY_HOST/$REPOSITORY_NAME/$IMAGE_NAME:$DEV_TAG"
+    - docker build -t $REGISTRY_HOST/$REPOSITORY_NAME/$IMAGE_NAME:$DEV_TAG .
+  only:
+    - development
+    
+build-requirement:
+  stage: build
+  image:
+    name: jerob/pipenv
+    entrypoint: [""]
+  script:
+    - pipenv --version && pipenv install && pipenv lock -r > requirements.txt
+    - cat requirements.txt
+  when: manual
+  only:
+    - development
+
+publish-production:
+  stage: publish
+  image: docker:git
+  script:
+  - docker login $REGISTRY_HOST -u $REGISTRY_USER -p $REGISTRY_PASS
+  - docker push $REGISTRY_HOST/$REPOSITORY_NAME/$IMAGE_NAME:$DEV_TAG
+  - docker tag $REGISTRY_HOST/$REPOSITORY_NAME/$IMAGE_NAME:$DEV_TAG $REGISTRY_HOST/$REPOSITORY_NAME/$IMAGE_NAME:latest
+  - docker push $REGISTRY_HOST/$REPOSITORY_NAME/$IMAGE_NAME:latest
+  only:
+    - master
+    - development
+
+release-tag:
+  stage: publish
+  image: docker:git
+  script:
+  - TAG=$(git describe --abbrev=0 --tags || true) && echo "TAG = "$TAG
+  - echo "==== This is $TAG version ===="
+  - docker login $REGISTRY_HOST -u $REGISTRY_USER -p $REGISTRY_PASS
+  - docker pull $REGISTRY_HOST/$REPOSITORY_NAME/$IMAGE_NAME:latest
+  - docker tag $REGISTRY_HOST/$REPOSITORY_NAME/$IMAGE_NAME:latest $REGISTRY_HOST/$REPOSITORY_NAME/$IMAGE_NAME:$TAG
+  - docker push $REGISTRY_HOST/$REPOSITORY_NAME/$IMAGE_NAME:$TAG
+  only:
+    - tags
+    
+deploy-staging:
+  image: willhallonline/ansible:2.8-alpine
+  stage: deploy
+  script:
+    - export ANSIBLE_HOST_KEY_CHECKING=False
+    - ansible -m ping staging -i inventory -e "ansible_ssh_user=$SSH_USER ansible_ssh_pass=$SSH_PASS ansible_sudo_pass=$SSH_PASS" -vv
+    - ansible-playbook -i inventory -e "host_name=staging ansible_ssh_user=$SSH_USER ansible_ssh_pass=$SSH_PASS ansible_sudo_pass=$SSH_PASS" ansible/deploy-dev.yml -vv
+  except:
+    - master
+    - tags
+
+deploy-production:
+  image: willhallonline/ansible:2.8-alpine
+  stage: deploy
+  script:
+    - export ANSIBLE_HOST_KEY_CHECKING=False
+    - ansible -m ping production -i inventory -e "ansible_ssh_user=$SSH_USER ansible_ssh_pass=$SSH_PASS ansible_sudo_pass=$SSH_PASS" -vv
+    - ansible-playbook -i inventory -e "host_name=production ansible_ssh_user=$SSH_USER ansible_ssh_pass=$SSH_PASS ansible_sudo_pass=$SSH_PASS" ansible/deploy-prod.yml -vv
+  only:
+    - master

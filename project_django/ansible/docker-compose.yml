@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+    db:
+      image: postgres:9.5
+      container_name: referentiels_${REF_ENV}_db
+      volumes:
+        - ./db_data:/var/lib/postgresql/data
+        - ./docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/
+      environment:
+        TZ: "Europe/Paris"
+        POSTGRES_DB: referentiel
+        POSTGRES_USER: referentiel
+        POSTGRES_PASSWORD: ${REF_DB_PASSWORD}
+      ports:
+        - "5432:5432"
+      networks:
+        - referentiel
+    app:
+      image: ccireferential.azurecr.io/referentiels/v2:latest
+      container_name: referentiels_${REF_ENV}_app
+      command: "bash init_server.sh"
+      environment:
+        VIRTUAL_HOST: api.chamberlab.net
+        VIRTUAL_PORT: 8000
+      depends_on:
+        - db
+      links:
+        - db
+      ports:
+        - "8000:8000"
+      networks:
+        - referentiel
+networks:
+  referentiel: 
+      driver: bridge

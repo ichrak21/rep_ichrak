@@ -1,0 +1,4 @@
+- hosts: "{{ host_name }}"
+  become: yes
+  roles:
+    - deploy-dev

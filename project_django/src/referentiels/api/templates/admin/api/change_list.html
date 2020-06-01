@@ -1,0 +1,17 @@
+{% extends "admin/change_list.html" %}
+{# la ligne ci-dessous est copiée de "reversion/change_list.html #}
+{% load i18n admin_urls %}
+
+{# Cette vue permet d'afficher les boutons d'import/export ainsi que le lien vers la gestion des versions #}
+{% block object-tools-items %}
+    {# Pour les boutons import/export #}
+    {# % include "admin/import_export/change_list_import_item.html" % #}
+    {# % include "admin/import_export/change_list_export_item.html" % #}
+
+    {# les 3 lignes ci-dessous sont copiées de "reversion/change_list.html #}
+    {% if not is_popup and has_add_permission and has_change_permission %}
+        <li><a href="{% url opts|admin_urlname:'recoverlist' %}" class="recoverlink">{% blocktrans with cl.opts.verbose_name_plural|escape as name %}Recover deleted {{name}}{% endblocktrans %}</a></li>
+    {% endif %}
+
+    {{block.super}}
+{% endblock %}
