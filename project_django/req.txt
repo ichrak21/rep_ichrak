@@ -47,7 +47,7 @@ openpyxl==2.5.12
 PAM==0.4.2
 pdfkit==0.6.1
 pexpect==4.2.1
-Pillow==5.1.0
+Pillow==9.0.1
 pipenv==2018.11.26
 prompt-toolkit==1.0.15
 protobuf==3.0.0
